@@ -119,23 +119,25 @@ void buttonEvent(unsigned int id, unsigned char event) {
        }
     #endif
 
-    if (BUTTON_MODE_TOGGLE == action) {
-        if (_buttons[id].relayID > 0) {
-            relayToggle(_buttons[id].relayID - 1);
-        }
-    }
+    #if INTERNAL_RELAY_CONTROL
+      if (BUTTON_MODE_TOGGLE == action) {
+          if (_buttons[id].relayID > 0) {
+              relayToggle(_buttons[id].relayID - 1);
+          }
+      }
 
-    if (BUTTON_MODE_ON == action) {
-        if (_buttons[id].relayID > 0) {
-            relayStatus(_buttons[id].relayID - 1, true);
-        }
-    }
+      if (BUTTON_MODE_ON == action) {
+          if (_buttons[id].relayID > 0) {
+              relayStatus(_buttons[id].relayID - 1, true);
+          }
+      }
 
-    if (BUTTON_MODE_OFF == action) {
-        if (_buttons[id].relayID > 0) {
-            relayStatus(_buttons[id].relayID - 1, false);
-        }
-    }
+      if (BUTTON_MODE_OFF == action) {
+          if (_buttons[id].relayID > 0) {
+              relayStatus(_buttons[id].relayID - 1, false);
+          }
+      }
+    #endif
     
     if (BUTTON_MODE_AP == action) {
         if (wifiState() & WIFI_STATE_AP) {

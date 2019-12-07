@@ -3,6 +3,8 @@
 // Uncomment the appropiate line(s) to build from the Arduino IDE
 //--------------------------------------------------------------------------------
 
+#define INTERNAL_RELAY_CONTROL 0
+
 //--------------------------------------------------------------------------------
 // Hardware
 //--------------------------------------------------------------------------------
@@ -84,7 +86,7 @@
 //#define ITEAD_SONOFF_SV
 //#define ITEAD_SONOFF_T1_1CH
 //#define ITEAD_SONOFF_T1_2CH
-//#define ITEAD_SONOFF_T1_3CH
+#define ITEAD_SONOFF_T1_3CH
 //#define ITEAD_SONOFF_TH
 //#define ITEAD_SONOFF_TOUCH
 //#define IWOOLE_LED_TABLE_LAMP

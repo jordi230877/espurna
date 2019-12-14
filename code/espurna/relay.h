@@ -17,6 +17,7 @@ enum class RelayStatus : unsigned char {
     OFF = 0,
     ON = 1,
     TOGGLE = 2,
+    QUERY = 3,
     UNKNOWN = 0xFF
 };
 

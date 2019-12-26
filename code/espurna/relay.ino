@@ -698,7 +698,7 @@ RelayStatus relayParsePayload(const char * payload) {
         if (_relay_mqtt_payload_toggle.equals(payload)) return RelayStatus::TOGGLE;
     #endif // MQTT_SUPPORT
 
-    // Finally, check for "OFF", "ON", "TOGGLE" (both lower and upper cases)
+    // Finally, check for "OFF", "ON", "TOGGLE", "QUERY" (both lower and upper cases)
     String temp(payload);
     temp.trim();
 
@@ -708,6 +708,8 @@ RelayStatus relayParsePayload(const char * payload) {
         return RelayStatus::ON;
     } else if (temp.equalsIgnoreCase("toggle")) {
         return RelayStatus::TOGGLE;
+    } else if (temp.equalsIgnoreCase("query")) {
+        return RelayStatus::QUERY;
     }
 
     return RelayStatus::UNKNOWN;

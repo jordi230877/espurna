@@ -116,6 +116,10 @@ bool _relayHandlePayload(unsigned char relayID, const char* payload) {
     auto value = relayParsePayload(payload);
     if (value == RelayStatus::UNKNOWN) return false;
 
+    if (value == RelayStatus::QUERY) {
+        wsSend(_relayWebSocketUpdate);
+    }
+
     if (value == RelayStatus::OFF) {
         relayStatus(relayID, false);
     } else if (value == RelayStatus::ON) {

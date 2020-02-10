@@ -255,83 +255,183 @@ void heartbeat() {
 
     #if MQTT_SUPPORT
         if (!serial && (_heartbeat_mode == HEARTBEAT_REPEAT || systemGetHeartbeat())) {
-            if (hb_cfg & Heartbeat::Interval)
-                mqttSend(MQTT_TOPIC_INTERVAL, String(getHeartbeatInterval()).c_str());
-
-            if (hb_cfg & Heartbeat::App)
-                mqttSend(MQTT_TOPIC_APP, APP_NAME);
-
-            if (hb_cfg & Heartbeat::Version)
-                mqttSend(MQTT_TOPIC_VERSION, APP_VERSION);
-
-            if (hb_cfg & Heartbeat::Board)
-                mqttSend(MQTT_TOPIC_BOARD, getBoardName().c_str());
-
-            if (hb_cfg & Heartbeat::Hostname)
-                mqttSend(MQTT_TOPIC_HOSTNAME, getSetting("hostname", getIdentifier()).c_str());
-
-            if (hb_cfg & Heartbeat::Description) {
-                if (hasSetting("desc")) {
-                    mqttSend(MQTT_TOPIC_DESCRIPTION, getSetting("desc").c_str());
+            #if AGG_HEARTBEAT
+                String agg_hb = "";
+                String separator = "";
+                if (hb_cfg & Heartbeat::Interval) {
+                    agg_hb = agg_hb + separator + "Interval=" + String(getHeartbeatInterval()).c_str();
+                    separator = " | ";
                 }
-            }
+                if (hb_cfg & Heartbeat::App) {
+                    agg_hb = agg_hb + separator + "AppName=" + APP_NAME;
+                    separator = " | ";
+                }
+                if (hb_cfg & Heartbeat::Version) {
+                    agg_hb = agg_hb + separator + "AppVersion=" + APP_VERSION;
+                    separator = " | ";
+                }
+                if (hb_cfg & Heartbeat::Board) {
+                    agg_hb = agg_hb + separator + "Board=" + getBoardName().c_str();
+                    separator = " | ";
+                }
+                if (hb_cfg & Heartbeat::Hostname) {
+                    agg_hb = agg_hb + separator + "Hostname=" + getSetting("hostname", getIdentifier()).c_str();
+                    separator = " | ";
+                }
+                if (hb_cfg & Heartbeat::Description) {
+                    if (hasSetting("desc")) {
+                        agg_hb = agg_hb + separator + "Description=" + getSetting("desc").c_str();
+                        separator = " | ";
+                    }
+                }
+                if (hb_cfg & Heartbeat::Ssid) {
+                    agg_hb = agg_hb + separator + "SSID=" + WiFi.SSID().c_str();
+                    separator = " | ";
+                }
+                if (hb_cfg & Heartbeat::Bssid) {
+                    agg_hb = agg_hb + separator + "BSSID=" + WiFi.BSSIDstr().c_str();
+                    separator = " | ";
+                }
+                if (hb_cfg & Heartbeat::Ip) {
+                    agg_hb = agg_hb + separator + "IP=" + getIP().c_str();
+                    separator = " | ";
+                }
+                if (hb_cfg & Heartbeat::Mac) {
+                    agg_hb = agg_hb + separator + "MAC=" + WiFi.macAddress().c_str();
+                    separator = " | ";
+                }
+                if (hb_cfg & Heartbeat::Rssi) {
+                    agg_hb = agg_hb + separator + "RSSI=" + String(WiFi.RSSI()).c_str();
+                    separator = " | ";
+                }
+                if (hb_cfg & Heartbeat::Uptime) {
+                    agg_hb = agg_hb + separator + "Uptime=" + String(uptime_seconds).c_str();
+                    separator = " | ";
+                }
+                #if NTP_SUPPORT
+                    if ((hb_cfg & Heartbeat::Datetime) && (ntpSynced())) {
+                        agg_hb = agg_hb + separator + "Ntp=" + ntpDateTime().c_str();
+                        separator = " | ";
+                    }
+                #endif
 
-            if (hb_cfg & Heartbeat::Ssid)
-                mqttSend(MQTT_TOPIC_SSID, WiFi.SSID().c_str());
+                if (hb_cfg & Heartbeat::Freeheap) {
+                    agg_hb = agg_hb + separator + "Freeheap=" + String(heap_stats.available).c_str();
+                    separator = " | ";
+                }
+                if (hb_cfg & Heartbeat::Relay)
+                    relayMQTT();
 
-            if (hb_cfg & Heartbeat::Bssid)
-                mqttSend(MQTT_TOPIC_BSSID, WiFi.BSSIDstr().c_str());
+                #if (LIGHT_PROVIDER != LIGHT_PROVIDER_NONE)
+                    if (hb_cfg & Heartbeat::Light)
+                        lightMQTT();
+                #endif
 
-            if (hb_cfg & Heartbeat::Ip)
-                mqttSend(MQTT_TOPIC_IP, getIP().c_str());
+                if ((hb_cfg & Heartbeat::Vcc) && (ADC_MODE_VALUE == ADC_VCC)) {
+                    agg_hb = agg_hb + separator + "Vcc=" + String(ESP.getVcc()).c_str();
+                    separator = " | ";
+                }
+                if (hb_cfg & Heartbeat::Status)
+                    mqttSendStatus();
 
-            if (hb_cfg & Heartbeat::Mac)
-                mqttSend(MQTT_TOPIC_MAC, WiFi.macAddress().c_str());
+                if (hb_cfg & Heartbeat::Loadavg) {
+                    agg_hb = agg_hb + separator + "Loadavg=" + String(systemLoadAverage()).c_str();
+                    separator = " | ";
+                }
+                #if THERMOSTAT_SUPPORT
+                    if (hb_cfg & Heartbeat::Range) {
+                        agg_hb = agg_hb + separator + "_temp_range.min=" + String(_temp_range.min).c_str();
+                        agg_hb = agg_hb + separator + "_temp_range.min=" + String(_temp_range.max).c_str();
+                        separator = " | ";
+                    }
 
-            if (hb_cfg & Heartbeat::Rssi)
-                mqttSend(MQTT_TOPIC_RSSI, String(WiFi.RSSI()).c_str());
+                    if (hb_cfg & Heartbeat::RemoteTemp) {
+                        char remote_temp[16];
+                        dtostrf(_remote_temp.temp, 1, 1, remote_temp);
+                        //mqttSend(MQTT_TOPIC_REMOTE_TEMP, remote_temp);
+                        agg_hb = agg_hb + separator + "remote_temp=" + remote_temp;
+                        separator = " | ";
+                    }
+                #endif
+                mqttSend(MQTT_TOPIC_AGG_STATUS, agg_hb.c_str());
+            #else
+                if (hb_cfg & Heartbeat::Interval)
+                    mqttSend(MQTT_TOPIC_INTERVAL, String(getHeartbeatInterval()).c_str());
 
-            if (hb_cfg & Heartbeat::Uptime)
-                mqttSend(MQTT_TOPIC_UPTIME, String(getUptime()).c_str());
+                if (hb_cfg & Heartbeat::App)
+                    mqttSend(MQTT_TOPIC_APP, APP_NAME);
 
-            #if NTP_SUPPORT
-                if ((hb_cfg & Heartbeat::Datetime) && (ntpSynced()))
-                    mqttSend(MQTT_TOPIC_DATETIME, ntpDateTime().c_str());
-            #endif
+                if (hb_cfg & Heartbeat::Version)
+                    mqttSend(MQTT_TOPIC_VERSION, APP_VERSION);
 
-            if (hb_cfg & Heartbeat::Freeheap)
-                mqttSend(MQTT_TOPIC_FREEHEAP, String(heap_stats.available).c_str());
+                if (hb_cfg & Heartbeat::Board)
+                    mqttSend(MQTT_TOPIC_BOARD, getBoardName().c_str());
 
-            if (hb_cfg & Heartbeat::Relay)
-                relayMQTT();
+                if (hb_cfg & Heartbeat::Hostname)
+                    mqttSend(MQTT_TOPIC_HOSTNAME, getSetting("hostname", getIdentifier()).c_str());
 
-            #if (LIGHT_PROVIDER != LIGHT_PROVIDER_NONE)
-                if (hb_cfg & Heartbeat::Light)
-                    lightMQTT();
-            #endif
-
-            if ((hb_cfg & Heartbeat::Vcc) && (ADC_MODE_VALUE == ADC_VCC))
-                mqttSend(MQTT_TOPIC_VCC, String(ESP.getVcc()).c_str());
-
-            if (hb_cfg & Heartbeat::Status)
-                mqttSendStatus();
-
-            if (hb_cfg & Heartbeat::Loadavg)
-                mqttSend(MQTT_TOPIC_LOADAVG, String(systemLoadAverage()).c_str());
-
-            #if THERMOSTAT_SUPPORT
-                if (hb_cfg & Heartbeat::Range) {
-                    mqttSend(MQTT_TOPIC_HOLD_TEMP "_" MQTT_TOPIC_HOLD_TEMP_MIN, String(_temp_range.min).c_str());
-                    mqttSend(MQTT_TOPIC_HOLD_TEMP "_" MQTT_TOPIC_HOLD_TEMP_MAX, String(_temp_range.max).c_str());
+                if (hb_cfg & Heartbeat::Description) {
+                    if (hasSetting("desc")) {
+                        mqttSend(MQTT_TOPIC_DESCRIPTION, getSetting("desc").c_str());
+                    }
                 }
 
-                if (hb_cfg & Heartbeat::RemoteTemp) {
-                    char remote_temp[16];
-                    dtostrf(_remote_temp.temp, 1, 1, remote_temp);
-                    mqttSend(MQTT_TOPIC_REMOTE_TEMP, remote_temp);
-                }
-            #endif
+                if (hb_cfg & Heartbeat::Ssid)
+                    mqttSend(MQTT_TOPIC_SSID, WiFi.SSID().c_str());
 
+                if (hb_cfg & Heartbeat::Bssid)
+                    mqttSend(MQTT_TOPIC_BSSID, WiFi.BSSIDstr().c_str());
+
+                if (hb_cfg & Heartbeat::Ip)
+                    mqttSend(MQTT_TOPIC_IP, getIP().c_str());
+
+                if (hb_cfg & Heartbeat::Mac)
+                    mqttSend(MQTT_TOPIC_MAC, WiFi.macAddress().c_str());
+
+                if (hb_cfg & Heartbeat::Rssi)
+                    mqttSend(MQTT_TOPIC_RSSI, String(WiFi.RSSI()).c_str());
+
+                if (hb_cfg & Heartbeat::Uptime)
+                    mqttSend(MQTT_TOPIC_UPTIME, String(uptime_seconds).c_str());
+
+                #if NTP_SUPPORT
+                    if ((hb_cfg & Heartbeat::Datetime) && (ntpSynced()))
+                        mqttSend(MQTT_TOPIC_DATETIME, ntpDateTime().c_str());
+                #endif
+
+                if (hb_cfg & Heartbeat::Freeheap)
+                    mqttSend(MQTT_TOPIC_FREEHEAP, String(heap_stats.available).c_str());
+
+                if (hb_cfg & Heartbeat::Relay)
+                    relayMQTT();
+
+                #if (LIGHT_PROVIDER != LIGHT_PROVIDER_NONE)
+                    if (hb_cfg & Heartbeat::Light)
+                        lightMQTT();
+                #endif
+
+                if ((hb_cfg & Heartbeat::Vcc) && (ADC_MODE_VALUE == ADC_VCC))
+                    mqttSend(MQTT_TOPIC_VCC, String(ESP.getVcc()).c_str());
+
+                if (hb_cfg & Heartbeat::Status)
+                    mqttSendStatus();
+
+                if (hb_cfg & Heartbeat::Loadavg)
+                    mqttSend(MQTT_TOPIC_LOADAVG, String(systemLoadAverage()).c_str());
+
+                #if THERMOSTAT_SUPPORT
+                    if (hb_cfg & Heartbeat::Range) {
+                        mqttSend(MQTT_TOPIC_HOLD_TEMP "_" MQTT_TOPIC_HOLD_TEMP_MIN, String(_temp_range.min).c_str());
+                        mqttSend(MQTT_TOPIC_HOLD_TEMP "_" MQTT_TOPIC_HOLD_TEMP_MAX, String(_temp_range.max).c_str());
+                    }
+
+                    if (hb_cfg & Heartbeat::RemoteTemp) {
+                        char remote_temp[16];
+                        dtostrf(_remote_temp.temp, 1, 1, remote_temp);
+                        mqttSend(MQTT_TOPIC_REMOTE_TEMP, remote_temp);
+                    }
+                #endif
+           #endif
         } else if (!serial && _heartbeat_mode == HEARTBEAT_REPEAT_STATUS) {
             mqttSendStatus();
         }

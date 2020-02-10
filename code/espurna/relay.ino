@@ -691,6 +691,7 @@ RelayStatus relayParsePayload(const char * payload) {
         if (payload[0] == '0') return RelayStatus::OFF;
         if (payload[0] == '1') return RelayStatus::ON;
         if (payload[0] == '2') return RelayStatus::TOGGLE;
+        if (payload[0] == '3') return RelayStatus::TOGGLE;
         return RelayStatus::UNKNOWN;
     }
 

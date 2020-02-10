@@ -305,7 +305,7 @@ void heartbeat() {
                     separator = " | ";
                 }
                 if (hb_cfg & Heartbeat::Uptime) {
-                    agg_hb = agg_hb + separator + "Uptime=" + String(uptime_seconds).c_str();
+                    agg_hb = agg_hb + separator + "Uptime=" + String(getUptime()).c_str();
                     separator = " | ";
                 }
                 #if NTP_SUPPORT
@@ -391,13 +391,8 @@ void heartbeat() {
                 if (hb_cfg & Heartbeat::Rssi)
                     mqttSend(MQTT_TOPIC_RSSI, String(WiFi.RSSI()).c_str());
 
-<<<<<<< HEAD
                 if (hb_cfg & Heartbeat::Uptime)
-                    mqttSend(MQTT_TOPIC_UPTIME, String(uptime_seconds).c_str());
-=======
-            if (hb_cfg & Heartbeat::Uptime)
-                mqttSend(MQTT_TOPIC_UPTIME, String(getUptime()).c_str());
->>>>>>> dev
+                    mqttSend(MQTT_TOPIC_UPTIME, String(getUptime()).c_str());
 
                 #if NTP_SUPPORT
                     if ((hb_cfg & Heartbeat::Datetime) && (ntpSynced()))

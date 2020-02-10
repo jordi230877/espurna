@@ -687,6 +687,7 @@ RelayStatus relayParsePayload(const char * payload) {
         if (payload[0] == '0') return RelayStatus::OFF;
         if (payload[0] == '1') return RelayStatus::ON;
         if (payload[0] == '2') return RelayStatus::TOGGLE;
+        if (payload[0] == '3') return RelayStatus::QUERY;
         return RelayStatus::UNKNOWN;
     }
 
@@ -707,6 +708,8 @@ RelayStatus relayParsePayload(const char * payload) {
         return RelayStatus::ON;
     } else if (temp.equalsIgnoreCase("toggle")) {
         return RelayStatus::TOGGLE;
+    } else if (temp.equalsIgnoreCase("query")) {
+        return RelayStatus::QUERY;
     }
 
     return RelayStatus::UNKNOWN;

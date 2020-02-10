@@ -392,7 +392,7 @@ void heartbeat() {
                     mqttSend(MQTT_TOPIC_RSSI, String(WiFi.RSSI()).c_str());
 
                 if (hb_cfg & Heartbeat::Uptime)
-                    mqttSend(MQTT_TOPIC_UPTIME, String(uptime_seconds).c_str());
+                    mqttSend(MQTT_TOPIC_UPTIME, String(getUptime()).c_str());
 
                 #if NTP_SUPPORT
                     if ((hb_cfg & Heartbeat::Datetime) && (ntpSynced()))

@@ -1146,6 +1146,7 @@
 #define MQTT_TOPIC_MIRED            "mired"
 #define MQTT_TOPIC_KELVIN           "kelvin"
 #define MQTT_TOPIC_TRANSITION       "transition"
+#define MQTT_TOPIC_AGG_STATUS       "agg_status"
 
 // Thermostat module
 #define MQTT_TOPIC_HOLD_TEMP        "hold_temp"
